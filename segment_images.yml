@@ -1,0 +1,15 @@
+name: filopodia_actin_dynamics
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyterlab
+  - python
+  - matplotlib
+  - numpy
+  - scikit-image
+  - tifffile
+  - pip
+  - scipy
+  - pystackreg
+
