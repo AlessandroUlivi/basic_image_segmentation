@@ -1,4 +1,4 @@
-name: filopodia_actin_dynamics
+name: segment_images
 channels:
   - conda-forge
   - defaults
@@ -11,5 +11,7 @@ dependencies:
   - tifffile
   - pip
   - scipy
-  - pystackreg
+  - scikit-learn
+  - pip:
+    - opencv-python
 
