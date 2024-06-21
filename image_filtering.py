@@ -40,7 +40,7 @@ def bilateral_filter_image(img, smooth_diameter, smooth_sigma_color, smooth_sigm
     """
     #Transform input image to type float32 before applying bilateral filtering
     img_f32 = img_as_float32(img, )
-    #Apply bilateral blurring
+    #Apply bilateral filtering
     img_bilat = cv2.bilateralFilter(img_f32, smooth_diameter, smooth_sigma_color, smooth_sigma_space)
     return img_bilat
 
