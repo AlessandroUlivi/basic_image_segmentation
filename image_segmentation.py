@@ -20,13 +20,14 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     if roi_mask != None:
         image_2_process = input_img[roi_mask>0]
     else:
-        full_image_zeroes_array = np.zeros(input_img.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
+        full_image_zeroes_array = np.ones(input_img.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
         image_2_process = input_img[full_image_zeroes_array>0]
-
+    
     #If no values are provided to calculate hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the distribution
     if hyst_filt_bot_stdfactor == None and hyst_filt_top_stdfactor == None:
         #Get mode, high, low values to apply to hysteresis-based filtering based on percentiles
         histogram_based_intensity_values = get_intensity_values_from_histogram(image_2_process, perc_v=[hyst_filt_bot_perc, hyst_filt_top_perc])
+        print(histogram_based_intensity_values)
         low_hyst_threshold = histogram_based_intensity_values[4][0]
         high_hyst_threshold = histogram_based_intensity_values[4][1]
         #Apply hysteresis-based filtering
@@ -164,3 +165,4 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
         final_filtered_img = uint8_hysteresis_filt_img.copy()
     
     return final_filtered_img
+
