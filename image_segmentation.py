@@ -27,11 +27,10 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     if hyst_filt_bot_stdfactor == None and hyst_filt_top_stdfactor == None:
         #Get mode, high, low values to apply to hysteresis-based filtering based on percentiles
         histogram_based_intensity_values = get_intensity_values_from_histogram(image_2_process, perc_v=[hyst_filt_bot_perc, hyst_filt_top_perc])
-        print(histogram_based_intensity_values)
         low_hyst_threshold = histogram_based_intensity_values[4][0]
         high_hyst_threshold = histogram_based_intensity_values[4][1]
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(image_2_process, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
 
     #If a values is provided to calculate the low value of the hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the distribution
     elif hyst_filt_bot_stdfactor != None and hyst_filt_top_stdfactor == None:
@@ -94,7 +93,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide a value for the high_hyst_threshold_dist you are asked to choose between a 'strict' and 'loose' as filter_choice_logic")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(image_2_process, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #If a values is provided both to calculate the high value and to calculate the low value of the hysteresis-based filtering by summing the standard deviantion
     # of histogram intensity to the mode of the distribution
@@ -153,7 +152,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide values for the low_hyst_threshold_dist and high_hyst_threshold_dist you are asked to also indicate a filter_choice_logic. Choose between 'strict', 'loose' or other custom logics available")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(image_2_process, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #Rescale hysteresis-based binary image on the uint8 value range
     uint8_hysteresis_filt_img = np.where(hysteresis_filt_img>0, 255, 0).astype(np.uint8)
