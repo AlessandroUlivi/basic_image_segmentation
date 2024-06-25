@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import convolve
 from skimage.filters import median as medianfilter
+from skimage.filters import frangi
 from skimage.util import img_as_float32
 import cv2
 
@@ -44,4 +45,12 @@ def bilateral_filter_image(img, smooth_diameter, smooth_sigma_color, smooth_sigm
     img_bilat = cv2.bilateralFilter(img_f32, smooth_diameter, smooth_sigma_color, smooth_sigma_space)
     return img_bilat
 
+def frangi_filter(immg, **kwargs):
+    """
+    returns a copy of the filtered input image after applying a frangi filtering
+    """
+    #Copy input image
+    immg_copy = immg.copy()
+
+    return frangi(immg_copy, **kwargs)
 
