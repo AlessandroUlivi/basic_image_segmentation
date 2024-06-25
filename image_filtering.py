@@ -22,25 +22,32 @@ def blur_image(im, n, ny=None):
     """ blurs the image by convolving with a gaussian kernel of typical
         size n. The optional keyword argument ny allows for a different
         size in the y direction.
-        This code is taken from scipy documentation https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+        This code modified from scipy documentation https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
     """
+    #Copy the input image
+    im_copy = im.copy()
     g = gauss_kern(n, sizey=ny)
-    improc = convolve(im,g, mode='same')
+    improc = convolve(im_copy,g, mode='same')
     return(improc)
 
 def median_blur_image(imm, **kwargs):
     """
-    returns a smoothed version of input image using a median filter
+    returns a smoothed copy of input image using a median filter
     """
-    return medianfilter(imm, **kwargs)
+    #Copy input image
+    imm_copy = imm.copy()
+    return medianfilter(imm_copy, **kwargs)
 
 
 def bilateral_filter_image(img, smooth_diameter, smooth_sigma_color, smooth_sigma_space):
     """
-    returns a smoothed version of the input image using a bilateral filter
+    returns a smoothed copy of the input image using a bilateral filter
     """
+    #Copy input image
+    img_copy = img.copy()
+
     #Transform input image to type float32 before applying bilateral filtering
-    img_f32 = img_as_float32(img, )
+    img_f32 = img_as_float32(img_copy, )
     #Apply bilateral filtering
     img_bilat = cv2.bilateralFilter(img_f32, smooth_diameter, smooth_sigma_color, smooth_sigma_space)
     return img_bilat
