@@ -27,11 +27,11 @@ def blur_image(im, n, ny=None):
     improc = convolve(im,g, mode='same')
     return(improc)
 
-def median_blur_image(imm):
+def median_blur_image(imm, **kwargs):
     """
     returns a smoothed version of input image using a median filter
     """
-    return medianfilter(imm)
+    return medianfilter(imm, **kwargs)
 
 
 def bilateral_filter_image(img, smooth_diameter, smooth_sigma_color, smooth_sigma_space):
