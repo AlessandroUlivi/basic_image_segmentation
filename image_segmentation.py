@@ -36,13 +36,15 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
 
     Output: binary segmentation of putative puncta structures as numpy array of the same shape of the input image. NOTE: the output is, by default of type np.uint8 with values 0 and 255.
     """
-
+    #Copy input image
+    input_img_copy = input_img.copy()
+    
     #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
     if hasattr(roi_mask, "__len__"):
-        image_2_process = input_img[roi_mask>0]
+        image_2_process = input_img_copy[roi_mask>0]
     else:
-        full_image_zeroes_array = np.ones(input_img.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
-        image_2_process = input_img[full_image_zeroes_array>0]
+        full_image_zeroes_array = np.ones(input_img_copy.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
+        image_2_process = input_img_copy[full_image_zeroes_array>0]
     
     #If no values are provided to calculate hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the distribution
     if hyst_filt_bot_stdfactor == None and hyst_filt_top_stdfactor == None:
@@ -51,7 +53,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
         low_hyst_threshold = histogram_based_intensity_values[4][0]
         high_hyst_threshold = histogram_based_intensity_values[4][1]
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img_copy, low=low_hyst_threshold, high=high_hyst_threshold)
 
     #If a values is provided to calculate the low value of the hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the distribution
     elif hyst_filt_bot_stdfactor != None and hyst_filt_top_stdfactor == None:
@@ -82,7 +84,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide a value for the low_hyst_threshold_dist you are asked to choose between a 'strict' and 'loose' as filter_choice_logic")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img_copy, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #If a values is provided to calculate the high value of the hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the
     #  distribution
@@ -113,7 +115,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide a value for the high_hyst_threshold_dist you are asked to choose between a 'strict' and 'loose' as filter_choice_logic")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img_copy, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #If a values is provided both to calculate the high value and to calculate the low value of the hysteresis-based filtering by summing the standard deviantion
     # of histogram intensity to the mode of the distribution
@@ -171,7 +173,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide values for the low_hyst_threshold_dist and high_hyst_threshold_dist you are asked to also indicate a filter_choice_logic. Choose between 'strict', 'loose' or other custom logics available")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img_copy, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #Rescale hysteresis-based binary image on the uint8 value range
     uint8_hysteresis_filt_img = np.where(hysteresis_filt_img>0, 255, 0).astype(np.uint8)
