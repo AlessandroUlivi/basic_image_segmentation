@@ -80,7 +80,6 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
                 high_hyst_threshold = high_hyst_threshold_dist
             else:
                 high_hyst_threshold = high_hyst_threshold_perc
-        
         #If filter_choice_logic is set to 'loose'
         # Use as high value for hysteresis -based filtering the smallest between that calculated using the percentile and the mode plus standard deviation of histogram intensity
         #  distribution
@@ -113,7 +112,6 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
                 low_hyst_threshold = low_hyst_threshold_dist
             else:
                 low_hyst_threshold = low_hyst_threshold_perc
-            
             if high_hyst_threshold_dist>high_hyst_threshold_perc:
                 high_hyst_threshold = high_hyst_threshold_dist
             else:
@@ -139,7 +137,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
                 high_hyst_threshold = high_hyst_threshold_perc
             else:
                 high_hyst_threshold = high_hyst_threshold_dist
-                
+
             if low_hyst_threshold_dist > high_hyst_threshold_perc:
                 low_hyst_threshold = low_hyst_threshold_dist
             else:
