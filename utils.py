@@ -99,24 +99,24 @@ def set_boarder_to_value(img_2changeborder, boarder_value=0, boarder_size=8):
     return copy_img_2changeborder
 
 
-def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, hist_bins=100, initial_max_order=10, final_max_order=3):
+def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, initial_max_order=10, final_max_order=3, hist_bins=100):
     #Copy input image
     input_ima_ge_copy = input_ima_ge.copy()
         
     #Calculate the histogram distribution of the intensities of the input image - separate the counts per histogram bin, and the edges of the bins on the histogram
     img_hist_counts, img_hist_edges = np.histogram(input_ima_ge_copy.flatten(), bins=hist_bins)
         
-    #Detect at less then final_max_number maxima in the histogram distribution
-    maxima_starting_order = initial_max_order #Inialize a value to be used for initial maxima detection
+    #Detect less than final_max_number maxima in the histogram distribution
+    maxima_starting_order = initial_max_order #Initialize a value to be used for initial maxima detection
     max_of_hist_counts = argrelmax(img_hist_counts, order=maxima_starting_order) #Initialize maxima detection
-    while len(max_of_hist_counts[0])<final_max_order: #Iterate detection until less then final_max_number maxima are detected, by progressively decreasing the order of maxima detection
+    while len(max_of_hist_counts[0])<final_max_order: #Iterate detection until less than final_max_number maxima are detected, by progressively decreasing the order of maxima detection
         maxima_starting_order = maxima_starting_order-1
         max_of_hist_counts = argrelmax(img_hist_counts, order=maxima_starting_order)
         
     #Get the maxima in the targeted maxima position
     position_of_target_max = max_of_hist_counts[0][target_maxima_position]
         
-    #get the intensity value which correspond to maxima in the targeted maxima position
+    #get the intensity value which corresponds to maxima in the targeted maxima position
     target_max_intensity_val = img_hist_edges[position_of_target_max]
 
     return target_max_intensity_val
