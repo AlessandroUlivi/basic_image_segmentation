@@ -1,6 +1,7 @@
 import numpy as np
-from utils import get_intensity_values_from_histogram
+from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution
 from skimage.filters import apply_hysteresis_threshold
+from image_filtering import frangi_filter
 
 
 def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_top_perc, hyst_filt_bot_stdfactor=None, hyst_filt_top_stdfactor=None, filter_choice_logic='strict', roi_mask=None):
@@ -186,3 +187,21 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     
     return final_filtered_img
 
+
+def get_frangi_based_segmentation_img(frangifiltered_input_pict_ure, threshold_frangi_val, thresholded_embryo_input):
+
+    return
+
+    # # Binarize the image using the Frangi-based highpass calculated threshold
+    # high__pass_thresh_frangi_filtered_img = np.where(frangifiltered_input_pict_ure>threshold_frangi_val, 1000, 0)
+    
+    # # Set binary values outside the embryo to 0
+    # only_embryo_frangi_binary_img = np.where(thresholded_embryo_input>0, high__pass_thresh_frangi_filtered_img, 0)
+
+    # #Set border values to 0 - NOTE: this is required because Frangi-based filtering leads to the detection of the picture borders. I thouht that the step just above (Set binary values outside the embryo to 0) would have taken care of it, but it doesn't in cases where some tissue is at the border
+    # no_borders_only_embryo_frangi_binary_img = set_border_to_0(only_embryo_frangi_binary_img)
+    
+    # #Rescale image in the unit8 range
+    # uint8_only_embryo_frangi_binary_img = np.where(no_borders_only_embryo_frangi_binary_img>0, 255, 0).astype(np.uint8)
+
+    # return uint8_only_embryo_frangi_binary_img
