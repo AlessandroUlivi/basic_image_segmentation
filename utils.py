@@ -76,7 +76,7 @@ def get_intensity_values_from_histogram(image4hist, perc_v=None, multiplication_
         else:
             intensity_distances_list = []
             for dv in multiplication_f:
-                intensity_dist_val_1 = image4hist_hist_mode_val+(dv*multiplication_f)
+                intensity_dist_val_1 = image4hist_hist_mode_val+(histogram_ddistr_std_dv*dv)
                 intensity_distances_list.append(intensity_dist_val_1)
             output_list.append(intensity_distances_list)
 
