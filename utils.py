@@ -83,4 +83,17 @@ def get_intensity_values_from_histogram(image4hist, perc_v=None, multiplication_
     return output_list
 
 
+def set_boarder_to_value(img_2changeborder, boarder_value=0, boarder_size=8):
+    """
+    sets input image boarders to a specified value.
+    The size of what is considered boarder can be indicated with the boarder_size parameter (default is 8).
+    The value boarders are set to can be indicate with the boarder_value parameter (default is 0).
+    NOTE: the function only supports 2D imaged
+    """
+    copy_img_2changeborder = img_2changeborder.copy()
+    copy_img_2changeborder[:boarder_size+1,:] = boarder_value
+    copy_img_2changeborder[-boarder_size-1:,:] = boarder_value
+    copy_img_2changeborder[:,:boarder_size+1] = boarder_value
+    copy_img_2changeborder[:,-boarder_size-1:] = boarder_value
+    return copy_img_2changeborder
 
