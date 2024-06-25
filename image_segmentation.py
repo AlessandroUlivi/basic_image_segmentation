@@ -17,7 +17,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     """
 
     #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
-    if roi_mask!=None:
+    if hasattr(roi_mask, "__len__"):
         image_2_process = input_img[roi_mask>0]
     else:
         full_image_zeroes_array = np.ones(input_img.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
@@ -158,7 +158,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     uint8_hysteresis_filt_img = np.where(hysteresis_filt_img>0, 255, 0).astype(np.uint8)
 
     #Further remove every puncta which is detected outside the roi_mask if an roi_mask is provided
-    if roi_mask != None:
+    if hasattr(roi_mask, "__len__"):
         final_filtered_img = np.where(roi_mask>0, uint8_hysteresis_filt_img, 0).astype(np.uint8)
     else:
         final_filtered_img = uint8_hysteresis_filt_img.copy()
