@@ -5,15 +5,36 @@ from skimage.filters import apply_hysteresis_threshold
 
 def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_top_perc, hyst_filt_bot_stdfactor=None, hyst_filt_top_stdfactor=None, filter_choice_logic='strict', roi_mask=None):
     """
-    returns a binary mask with brightest pixels selected based on an hystereris-filter. The top and bottom values of the hysteresis process are both, independentely, defined as follow: first it is calculated the value to use, based on an histogram percentile.
-    Secondly a value is calculated by taking the mode intensity value and summing it the standard deviation of intensity values distribution, multiplied for an indicated factor. The highest of these two values is used. This process is quite robust to images with
-    low signal-to-noise (the throush signal is dim or bleach and the image is almost all background).
+    Returns a binary mask with positive pixels selected based on an hystereris-filter. I will call the low and high values inputed to the hysteresis filtering as
+    low_hyst and high_hyst in this description.
     
-    inputs: image to process as 2D numpy array (timelapse_with_puncta_tmpt). Embryo mask (binary segmentation of the embryo cytosol) as numpy array of the same shape of timelapse_with_puncta_tmpt. Percentile to use to calculate the high value of the hysteresis filtering (hyst_filt_top_perc). 
-    Percentile to use to calculate the low value of the hysteresis filtering (hyst_filt_bot_perc). Number of standard deviation to sum to mode value for calculating the high value of the hysteresis filtering (hyst_filt_top_stdfactor).
-    Number of standard deviation to sum to mode value for calculating the low value of the hysteresis filtering (hyst_filt_bot_stdfactor).
+    By default low_hyst and high_hyst are calculated as percentiles of the histogram distribution of intensity values. These percentiles must be inputed by the
+    user (hyst_filt_bot_perc, hyst_filt_top_perc). I will call the low_hyst and high_hyst values calculated by this method low_perc_v and high_perc_v in this descrition.
+    
+    The function also allows to indicate multiplication factors (hyst_filt_bot_stdfactor and hyst_filt_top_stdfactor) to be used for calculating low_hyst and high_hyst.
+    It is not required that both hyst_filt_bot_stdfactor and hyst_filt_top_stdfactor are provided. It is possible to only provide one of the two.
+    When hyst_filt_bot_stdfactor and hyst_filt_top_stdfactor are provided. The corresponding low_hyst and high_hyst are calculated using
+    formula-1: v=mode+(multiplication_factor*standard_deviation)
+    Where v is low_hyst or high_hyst, mode is the mode value of the histogram distribution of image intensity values.
+    multiplication_factor is the corresponding hyst_filt_bot_stdfactor ore hyst_filt_top_stdfactor. Standard_deviation is the standard deviation of the histogram distribution
+    of image intensity values.
+    I will call low_hyst and high_hyst calculated by this method low_dist_v and high_dist_v in this descrition.
 
-    output: binary segmentation of putative puncta structures as 2D numpy array of the same shape of the input image.
+    If low_dist_v and high_dist_v are calculted, the low_hyst and high_hyst which will ultimately be used for the hysteresis filtering will be chosen either from
+    low_perc_v and high_perc_v or from low_dist_v and high_dist_v, depending on the filter_choice_logic which is chosen.
+
+    The default filter_choice_logic is "strict". In this case the highest value between low_perc_v and low_dist_v will be used for low_hyst and
+    the highest value between high_perc_v and high_dist_v will be used for high_hyst.
+
+    When filter_choice_logic is "loose" the lowest value between low_perc_v and low_dist_v will be used for low_hyst and
+    the lowest value between high_perc_v and high_dist_v will be used for high_hyst.
+
+    Custom filter_choice_logic can be created.
+
+    When a binary mask is passed to roi_mask, the process will be restricted to the roi specified in the mask (positive values are interpreted as pixels of interest). The mask
+    must have the same shape of the input image.
+
+    Output: binary segmentation of putative puncta structures as numpy array of the same shape of the input image. NOTE: the output is, by default of type np.uint8 with values 0 and 255.
     """
 
     #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
