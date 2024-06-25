@@ -17,7 +17,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     """
 
     #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
-    if roi_mask != None:
+    if roi_mask!=None:
         image_2_process = input_img[roi_mask>0]
     else:
         full_image_zeroes_array = np.ones(input_img.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
@@ -61,7 +61,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
             print("because you provide a value for the low_hyst_threshold_dist you are asked to choose between a 'strict' and 'loose' as filter_choice_logic")
 
         #Apply hysteresis-based filtering
-        hysteresis_filt_img = apply_hysteresis_threshold(image_2_process, low=low_hyst_threshold, high=high_hyst_threshold)
+        hysteresis_filt_img = apply_hysteresis_threshold(input_img, low=low_hyst_threshold, high=high_hyst_threshold)
     
     #If a values is provided to calculate the high value of the hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the
     #  distribution
