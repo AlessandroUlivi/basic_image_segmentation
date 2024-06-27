@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from scipy.signal import argrelmax
+from image_filtering import blur_image
 
 
 def listdirNHF(input_directory):
@@ -122,7 +123,19 @@ def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, ini
     return target_max_intensity_val
 
 
-def get_minima_in_hist_distribution():
+def get_minima_in_hist_distribution(input_imga_ge, smooth_img=False, n=None, ny=None):
+    if smooth_img:
+        assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
+
+    #Copy the input image
+    input_imga_ge_copy = input_imga_ge.copy()
+
+    #Smooth input image if selected
+    if smooth_img:
+        gau_input_imga_ge = blur_image(input_imga_ge_copy, n=None, ny=None)
+    else:
+        gau_input_imga_ge = input_imga_ge_copy
+
     return
         # #Get the histogram distribution of the flatten image
         # gauss_tp_hist_counts, gauss_tp_hist_edges = np.histogram(gauss_tp_fl, bins=int_hist_bins)
