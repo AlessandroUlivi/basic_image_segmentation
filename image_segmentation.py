@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution
+from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution, set_boarder_to_value
 from skimage.filters import apply_hysteresis_threshold
 from image_filtering import frangi_filter
 
@@ -188,35 +188,65 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     return final_filtered_img
 
 
-def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_max_order=10, i_final_max_order=3, i_hist_bins=100, roi__mask=None, **kwargs):
+def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial_max_order=10, f_inal_max_order=3, h_ist_bins=100, ro_i__mask=None):
+    #Copy input image
+    img__2_segment_copy = img__2_segment.copy()
+    
+    #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
+    if hasattr(ro_i__mask, "__len__"):
+        image_2__process = img__2_segment_copy[ro_i__mask>0]
+    else:
+        full_img_zeroes_array = np.ones(img__2_segment_copy.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
+        image_2__process = img__2_segment_copy[full_img_zeroes_array>0]
+
+    #Calculate the highpass threshold by selecting the maxima corresponding to the inputed position
+    highpass__threshold = detect_maxima_in_hist_distribution(image_2__process, maxima__position, initial_max_order=i_nitial_max_order, final_max_order=f_inal_max_order, hist_bins=h_ist_bins)
+
+    # Binarize the image using the highpass threshold calculated threshold
+    high__pass_thresh_img = np.where(img__2_segment_copy>highpass__threshold, 1, 0)
+
+    #Set binary values outside ro_i__mask to 0 if ro_i__mask is provided
+    if hasattr(ro_i__mask, "__len__"):
+        roi_high__pass_thresh_img = np.where(ro_i__mask>0, high__pass_thresh_img, 0)
+
+    else:
+        roi_high__pass_thresh_img = high__pass_thresh_img.copy()
+    
+    #Rescale image in the unit8 range
+    uint8_roi_high__pass_thresh_img = np.where(roi_high__pass_thresh_img>0, 255, 0).astype(np.uint8)
+
+    return uint8_roi_high__pass_thresh_img
+
+
+
+def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_max_order=10, i_final_max_order=3,
+                                      i_hist_bins=100, i_boarder_value=0, i_boarder_size=8, roi__mask=None, **kwargs):
     #Copy input image
     img_2_segment_copy = img_2_segment.copy()
 
-    #Filter the input image using Frangi filter
+    #Filter the input image using Frangi filter - NOTE: Frangi filtering is not restricted to the roi__mask provided
     frangi_filtered_img = frangi_filter(img_2_segment_copy, **kwargs)
     
-    #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
+    #Get image segmentation based on maxima position - NOTE: Maxima detection is not restricted to the roi__mask provided
+    maxima_based_segmantion_img = get_maxima_based_segmentation_img(frangi_filtered_img,
+                                                                    maxima_position,
+                                                                    i_nitial_max_order=i_initial_max_order,
+                                                                    f_inal_max_order=i_final_max_order,
+                                                                    h_ist_bins=i_hist_bins,
+                                                                    )
+    
+    #Further set the area outside roi__mask to 0 if provided
     if hasattr(roi__mask, "__len__"):
-        image_2__process = frangi_filtered_img[roi__mask>0]
+        roi_segmented_frangi_filtered_img = np.where(roi__mask>0, maxima_based_segmantion_img, 0)
     else:
-        full_img_zeroes_array = np.ones(img_2_segment_copy.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
-        image_2__process = frangi_filtered_img[full_img_zeroes_array>0]
+        roi_segmented_frangi_filtered_img = maxima_based_segmantion_img.copy()
 
-    #Calculate the highpass threshold by selecting the maxima corresponding to the inputed position
-    highpass_threshold = detect_maxima_in_hist_distribution(image_2__process, maxima_position, initial_max_order=i_initial_max_order, final_max_order=i_final_max_order, hist_bins=i_hist_bins)
+    #Further set the boarder values to 0. NOTE: this is required because Frangi filtering could lead to bright boarders.
+    #In principle if a roi is passed to the get_maxima based function, boarders could aready be 0, but this is, of course, not guaranteed
+    no_boarders_roi_segmented_frangi_filtered_img = set_boarder_to_value(roi_segmented_frangi_filtered_img, boarder_value=i_boarder_value, boarder_size=i_boarder_size)
 
-    return frangi_filtered_img
+    #Rescale image in the unit8 range
+    uint8_no_boarders_roi_segmented_frangi_filtered_img = np.where(no_boarders_roi_segmented_frangi_filtered_img>0, 255, 0).astype(np.uint8)
 
-    # # Binarize the image using the Frangi-based highpass calculated threshold
-    # high__pass_thresh_frangi_filtered_img = np.where(frangifiltered_input_pict_ure>threshold_frangi_val, 1000, 0)
+    return uint8_no_boarders_roi_segmented_frangi_filtered_img
     
-    # # Set binary values outside the embryo to 0
-    # only_embryo_frangi_binary_img = np.where(thresholded_embryo_input>0, high__pass_thresh_frangi_filtered_img, 0)
-
-    # #Set border values to 0 - NOTE: this is required because Frangi-based filtering leads to the detection of the picture borders. I thouht that the step just above (Set binary values outside the embryo to 0) would have taken care of it, but it doesn't in cases where some tissue is at the border
-    # no_borders_only_embryo_frangi_binary_img = set_border_to_0(only_embryo_frangi_binary_img)
-    
-    # #Rescale image in the unit8 range
-    # uint8_only_embryo_frangi_binary_img = np.where(no_borders_only_embryo_frangi_binary_img>0, 255, 0).astype(np.uint8)
-
-    # return uint8_only_embryo_frangi_binary_img
