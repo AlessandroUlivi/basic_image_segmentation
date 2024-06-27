@@ -123,18 +123,18 @@ def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, ini
     return target_max_intensity_val
 
 
-def get_minima_in_hist_distribution(input_imga_ge, smooth_img=False, n=None, ny=None):
+def get_minima_in_hist_distribution(input_ima_ge, smooth_img=False, n=None, ny=None):
     if smooth_img:
         assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
 
     #Copy the input image
-    input_imga_ge_copy = input_imga_ge.copy()
+    input_ima_ge_copy = input_imga_ge.copy()
 
     #Smooth input image if selected
     if smooth_img:
-        gau_input_imga_ge = blur_image(input_imga_ge_copy, n=None, ny=None)
+        gau_input_ima_ge = blur_image(input_ima_ge_copy, n=None, ny=None)
     else:
-        gau_input_imga_ge = input_imga_ge_copy
+        gau_input_ima_ge = input_ima_ge_copy
 
     return
         # #Get the histogram distribution of the flatten image
