@@ -188,9 +188,24 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     return final_filtered_img
 
 
-def get_frangi_based_segmentation_img(frangifiltered_input_pict_ure, threshold_frangi_val, thresholded_embryo_input):
+def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_max_order=10, i_final_max_order=3, i_hist_bins=100, roi__mask=None, **kwargs):
+    #Copy input image
+    img_2_segment_copy = img_2_segment.copy()
 
-    return
+    #Filter the input image using Frangi filter
+    frangi_filtered_img = frangi_filter(img_2_segment_copy, **kwargs)
+    
+    #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
+    if hasattr(roi__mask, "__len__"):
+        image_2__process = frangi_filtered_img[roi__mask>0]
+    else:
+        full_img_zeroes_array = np.ones(img_2_segment_copy.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
+        image_2__process = frangi_filtered_img[full_img_zeroes_array>0]
+
+    #Calculate the highpass threshold by selecting the maxima corresponding to the inputed position
+    highpass_threshold = detect_maxima_in_hist_distribution(image_2__process, maxima_position, initial_max_order=i_initial_max_order, final_max_order=i_final_max_order, hist_bins=i_hist_bins)
+
+    return frangi_filtered_img
 
     # # Binarize the image using the Frangi-based highpass calculated threshold
     # high__pass_thresh_frangi_filtered_img = np.where(frangifiltered_input_pict_ure>threshold_frangi_val, 1000, 0)
