@@ -128,7 +128,7 @@ def get_minima_in_hist_distribution(input_ima_ge, smooth_img=False, n=None, ny=N
         assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
 
     #Copy the input image
-    input_ima_ge_copy = input_imga_ge.copy()
+    input_ima_ge_copy = input_ima_ge.copy()
 
     #Smooth input image if selected
     if smooth_img:
