@@ -101,6 +101,14 @@ def set_boarder_to_value(img_2changeborder, boarder_value=0, boarder_size=8):
 
 
 def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, initial_max_order=10, final_max_order=3, hist_bins=100):
+    """
+    given an input image (input_ima_ge) the function does the following:
+    - first, it detectes a certain number of the maxima of the histogram distribution of intensities values. This certain number is => to final_max_order (input value, default 3)
+      and <= to initial_max_order (input value, default 10). These maxima are ordered according to their position in the histogram distribution, such that the position in the
+      list correspond to the position in the histogram distribution, from left to right.
+    - second, given a target position (input value target_maxima_position), the function returns the intensity value correponding to the maxima in the target position of the list
+      of detected maxima.
+    """
     #Copy input image
     input_ima_ge_copy = input_ima_ge.copy()
         
