@@ -140,10 +140,10 @@ def get_minima_after_mode_in_hist_distribution(input_ima_ge, roi__mask=None, smo
 
     #Smooth input image if selected
     if smooth_img:
-        gau_input_ima_ge = blur_image(input_ima_ge_copy, n=None, ny=None)
+        gau_input_ima_ge = blur_image(input_ima_ge_copy, n=n, ny=ny)
     else:
         gau_input_ima_ge = input_ima_ge_copy
-
+    
     #Restrict the analysis to an roi if a mask is provided
     if hasattr(roi__mask, "__len__"):
         roi_gau_input_ima_ge = gau_input_ima_ge[roi__mask>0]
