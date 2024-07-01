@@ -188,6 +188,27 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     return final_filtered_img
 
 
+def get_highpass_based_segmentaion_img(image_to_threshold, high_pass__threshold, roi__ma_s_k=None):
+    #Copy the input image
+    image_to_threshold_copy = image_to_threshold.copy()
+
+    # Binarize the image using the highpass threshold calculated threshold
+    high__pass__thresh_img = np.where(image_to_threshold_copy>high_pass__threshold, 1, 0)
+
+    #Set binary values outside roi__ma_s_k to 0 if roi__ma_s_k is provided
+    if hasattr(roi__ma_s_k, "__len__"):
+        roi_high__pass__thresh_img = np.where(roi__ma_s_k>0, high__pass__thresh_img, 0)
+
+    else:
+        roi_high__pass__thresh_img = high__pass__thresh_img.copy()
+    
+    #Rescale image in the unit8 range
+    uint8_roi_high__pass__thresh_img = np.where(roi_high__pass__thresh_img>0, 255, 0).astype(np.uint8)
+
+    return uint8_roi_high__pass__thresh_img
+
+
+
 def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial_max_order=10, f_inal_max_order=3, h_ist_bins=100, ro_i__mask=None):
     #Copy input image
     img__2_segment_copy = img__2_segment.copy()
@@ -202,20 +223,10 @@ def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial
     #Calculate the highpass threshold by selecting the maxima corresponding to the inputed position
     highpass__threshold = detect_maxima_in_hist_distribution(image_2__process, maxima__position, initial_max_order=i_nitial_max_order, final_max_order=f_inal_max_order, hist_bins=h_ist_bins)
 
-    # Binarize the image using the highpass threshold calculated threshold
-    high__pass_thresh_img = np.where(img__2_segment_copy>highpass__threshold, 1, 0)
+    # Binarize the image using get_highpass_based_segmentaion_img
+    high__pass_thresh_img = get_highpass_based_segmentaion_img(img__2_segment_copy, highpass__threshold, roi__ma_s_k=ro_i__mask)
 
-    #Set binary values outside ro_i__mask to 0 if ro_i__mask is provided
-    if hasattr(ro_i__mask, "__len__"):
-        roi_high__pass_thresh_img = np.where(ro_i__mask>0, high__pass_thresh_img, 0)
-
-    else:
-        roi_high__pass_thresh_img = high__pass_thresh_img.copy()
-    
-    #Rescale image in the unit8 range
-    uint8_roi_high__pass_thresh_img = np.where(roi_high__pass_thresh_img>0, 255, 0).astype(np.uint8)
-
-    return uint8_roi_high__pass_thresh_img
+    return high__pass_thresh_img
 
 
 
@@ -249,4 +260,4 @@ def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_
     uint8_no_boarders_roi_segmented_frangi_filtered_img = np.where(no_boarders_roi_segmented_frangi_filtered_img>0, 255, 0).astype(np.uint8)
 
     return uint8_no_boarders_roi_segmented_frangi_filtered_img
-    
+
