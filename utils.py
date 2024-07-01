@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from scipy.signal import argrelmax
+from scipy.signal import argrelmax, argrelmin
 from image_filtering import blur_image
 
 
@@ -131,7 +131,7 @@ def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, ini
     return target_max_intensity_val
 
 
-def get_minima_after_mode_in_hist_distribution(input_ima_ge, smooth_img=False, n=None, ny=None, roi__mask=None, bins_of_hist=100):
+def get_minima_after_mode_in_hist_distribution(input_ima_ge, roi__mask=None, smooth_img=True, n=5, ny=None, bins_of_hist=100, i_order_count__min=5, i_order_count__max=5, return_mode_max=False):
     if smooth_img:
         assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
 
@@ -153,55 +153,62 @@ def get_minima_after_mode_in_hist_distribution(input_ima_ge, smooth_img=False, n
     #Get the histogram distribution of the flatten image
     img_hist_counts, img_hist_edges = np.histogram(roi_gau_input_ima_ge, bins=bins_of_hist)
 
-    return
-        
-        # #Get the position of the mode value of the histogram distribution in the guassian smoothed image (the position of the intensity value with minimum counts)
-        # tp_mode_position = np.argmax(gauss_tp_hist_counts)
-    
-        # #Sub-slice the histogram values to consider only the part after the mode
-        # gauss_tp_hist_counts_overmode = gauss_tp_hist_counts[tp_mode_position:]
-    
-        # #Initialize an order counter
-        # order_count__min = 5
-    
-        # #Get the position/index of the minima values in the sliced (over the mode) histogram distribution of the gaussian smoothed image (the position of the intensity values with minimum counts)
-        # min_val_hist_scipy_i = scipy.signal.argrelmin(gauss_tp_hist_counts_overmode, order=order_count__min)
-        
-        # #while loop, decreasing the order counter until at least a minimum value is found
-        # while min_val_hist_scipy_i[0].shape[0]<1:
-        #     order_count__min = order_count__min-1
-        #     min_val_hist_scipy_i = scipy.signal.argrelmin(gauss_tp_hist_counts_overmode, order=order_count__min)
-        
-        # # Sum the mode position to the position/index of the first (from the x axis origin) minima value in the sliced (over the mode) histogram distribution
-        # min_val_hist_scipy = tp_mode_position + min_val_hist_scipy_i[0][0]
+    #Get the position of the mode value of the histogram distribution (the position of the intensity value with maximum counts)
+    img_mode_position = np.argmax(img_hist_counts)
 
-        # #Initialize an order counter
-        # order_count__max = 5
+    #Sub-slice the histogram values to consider only the part after the mode
+    img_hist_counts_overmode = img_hist_counts[img_mode_position:]
     
-        # #Get the position/index of the maxima values in the sliced (over the mode) histogram distribution of the gaussian smoothed image (the position of the intensity values with maximum counts)
-        # max_val_hist_scipy_i = scipy.signal.argrelmax(gauss_tp_hist_counts_overmode, order=order_count__max)
-    
-        # #while loop, decreasing the order counter until at least a maxima value is found
-        # while max_val_hist_scipy_i[0].shape[0]<1:
-        #     order_count__max = order_count__max-1
-        #     max_val_hist_scipy_i = scipy.signal.argrelmax(gauss_tp_hist_counts_overmode, order=order_count__max)
+    #Initialize an order counter
+    order_count__min = i_order_count__min
+
+    #Get the position/index of the minima values in the sliced (over the mode) histogram distribution (the position of the intensity values with minimum counts)
+    min_val_hist_posistion_i = argrelmin(img_hist_counts_overmode, order=order_count__min)
         
-        # # Sum the mode position to the position/index of the first (from the x axis origin) maxima value in the sliced (over the mode) histogram distribution
-        # max_val_hist_scipy = tp_mode_position + max_val_hist_scipy_i[0][0]
-    
-        # #Get the position/index of the minimum value in the histogram distribution of the gaussian smoothed image, when considering only the values in between the mode and the first (from x axis origin) maxima after the mode. Then sum to it the position of the mode
-        # min_val_hist_minbwnmaxs = tp_mode_position + np.argmin(gauss_tp_hist_counts[tp_mode_position:max_val_hist_scipy])
-    
-        # #Get the intensity value of the first histogram minima (min_val_hist_scipy has all the positions of the minima of the histogram distribution. We take the first from the left - from the x axis origin - and check which intensity value is in that position)
-        # putative_threshold_min_scipy = gauss_tp_hist_edges[min_val_hist_scipy]
-        
-        # #Get the intensity value of the histogram-minimum-in-between-the-first-two-histogram-maxima (hmbfthm)
-        # putative_threshold_min_minbwnmaxs = gauss_tp_hist_edges[min_val_hist_minbwnmaxs]
-    
-        # #Get mode intensity value
-        # putative_mode_threshold = gauss_tp_hist_edges[tp_mode_position]
-    
-        # # #Get the intensity value of the first (from x axis origin) sliced (over the mode) histogram maxima
-        # putative_max_val = gauss_tp_hist_edges[max_val_hist_scipy]
+    #while loop, decreasing the order counter until at least a minimum value is found
+    while min_val_hist_posistion_i[0].shape[0]<1:
+        order_count__min = order_count__min-1
+        min_val_hist_posistion_i = argrelmin(img_hist_counts_overmode, order=order_count__min)
+
+    # Sum the mode position to the position/index of the first (from the x axis origin) minima value in the sliced (over the mode) histogram distribution
+    min_val_hist_posistion = img_mode_position + min_val_hist_posistion_i[0][0]
+
+    # #Initialize an order counter
+    order_count__max = i_order_count__max
+
+    #Get the position/index of the maxima values in the sliced (over the mode) histogram distribution of the gaussian smoothed image (the position of the intensity values with maximum counts)
+    max_val_hist_posistion_i = argrelmax(img_hist_counts_overmode, order=order_count__max)
+
+    #while loop, decreasing the order counter until at least a maxima value is found
+    while max_val_hist_posistion_i[0].shape[0]<1:
+        order_count__max = order_count__max-1
+        max_val_hist_posistion_i = argrelmax(img_hist_counts_overmode, order=order_count__max)
+
+    # Sum the mode position to the position/index of the first (from the x axis origin) maxima value in the sliced (over the mode) histogram distribution
+    max_val_hist_posistion = img_mode_position + max_val_hist_posistion_i[0][0]
+
+    #Get the position/index of the minimum value in the histogram distribution of the image, when considering only the values in between the mode and the first (from x axis origin) maxima after the mode. Then sum to it the position of the mode
+    min_val_hist_posistion_minbwnmaxs = img_mode_position + np.argmin(img_hist_counts[img_mode_position:max_val_hist_posistion])
+
+    #Get the intensity value of the first histogram minima (from the left - from the x axis origin -) in the sliced (over the mode) histogram distribution
+    min_intensity_val_overmode = img_hist_edges[min_val_hist_posistion]
+
+    #Get the intensity value of the histogram minima, , when considering only the values in between the mode and the first (from x axis origin) maxima after the mode
+    min_intensity_val_minbwnmaxs = img_hist_edges[min_val_hist_posistion_minbwnmaxs]
+
+    #For plotting purposes it could be convenient to visualize the mode and the first maxima after the mode which was detected. Return these values if the option is selected
+    #Else only return the minima values
+    if return_mode_max:
+
+        #Get the value corresponding to the mode of the histogram of intensity distribution
+        mode_intensity_val = img_hist_edges[img_mode_position]
+
+        #Get the value corresponding to the first maxima of the histogram of intensity distribution when considering only the part after the mode
+        max_overmode_intensity_val = img_hist_edges[max_val_hist_posistion]
+
+        return min_intensity_val_overmode, min_intensity_val_minbwnmaxs, mode_intensity_val, max_overmode_intensity_val
+    else:
+        return min_intensity_val_overmode, min_intensity_val_minbwnmaxs
+
 
 
