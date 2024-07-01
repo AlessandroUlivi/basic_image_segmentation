@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution, get_minima_after_mode_in_hist_distribution
+from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution
 from skimage.filters import apply_hysteresis_threshold
 from image_filtering import frangi_filter
 
