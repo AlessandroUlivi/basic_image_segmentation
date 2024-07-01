@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution
+from utils import get_intensity_values_from_histogram, set_boarder_to_value, detect_maxima_in_hist_distribution, get_minima_after_mode_in_hist_distribution
 from skimage.filters import apply_hysteresis_threshold
 from image_filtering import frangi_filter
 
@@ -292,5 +292,15 @@ def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_
     return uint8_no_boarders_roi_segmented_frangi_filtered_img
 
 
-# def get_minima_over_mode__based_segmentation()
+def get_minima_over_mode__based_segmentation():
+    # get_minima_after_mode_in_hist_distribution(input_ima_ge,
+    #                                            roi__mask=None,
+    #                                            smooth_img=True,
+    #                                            n=5,
+    #                                            ny=None,
+    #                                            bins_of_hist=100,
+    #                                            i_order_count__min=5,
+    #                                            i_order_count__max=5,
+    #                                            return_mode_max=False)
+    return
 
