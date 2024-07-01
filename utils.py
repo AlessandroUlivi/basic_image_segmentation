@@ -123,7 +123,7 @@ def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, ini
     return target_max_intensity_val
 
 
-def get_minima_in_hist_distribution(input_ima_ge, smooth_img=False, n=None, ny=None, roi__mask=None, bins_of_hist=100):
+def get_minima_after_mode_in_hist_distribution(input_ima_ge, smooth_img=False, n=None, ny=None, roi__mask=None, bins_of_hist=100):
     if smooth_img:
         assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
 
