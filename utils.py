@@ -132,6 +132,20 @@ def detect_maxima_in_hist_distribution(input_ima_ge, target_maxima_position, ini
 
 
 def get_minima_after_mode_in_hist_distribution(input_ima_ge, roi__mask=None, smooth_img=True, n=5, ny=None, bins_of_hist=100, i_order_count__min=5, i_order_count__max=5, return_mode_max=False):
+    """
+    Given an input image (input_ima_ge), it returns the following minima of the histogram distributions of the intensity values:
+    - output position 0, the first minima after the mode of value. First is considered from the x axis origin.
+    - output position 1, the mimima value in the range of values between the mode and the first maxima value after the mode.
+
+    Note that by default the input image is smoothed using a gaussian kernel of size 5 pixels before calculating the histogram distribution of intensity values.
+    
+    If return_mode_max parameter (bool, True/False, default False) is set to True, the following values are alse returned:
+    - oputput position 2, the mode value of the histogram distribution of intensity values.
+    - output position 3, the first maxima value of the histogram distribution of intensity values, calculated by taking into account only value after the mode value.
+
+    If an roi__mask is present, the whole analysis is restricted to this region (positive values in the mask are assumed to be the pixels of interest).
+    """
+
     if smooth_img:
         assert n != None, "indicate the size of the gaussian kernel (n) to use for smoothing"
 
@@ -143,7 +157,7 @@ def get_minima_after_mode_in_hist_distribution(input_ima_ge, roi__mask=None, smo
         gau_input_ima_ge = blur_image(input_ima_ge_copy, n=n, ny=ny)
     else:
         gau_input_ima_ge = input_ima_ge_copy
-    
+
     #Restrict the analysis to an roi if a mask is provided
     if hasattr(roi__mask, "__len__"):
         roi_gau_input_ima_ge = gau_input_ima_ge[roi__mask>0]
