@@ -117,3 +117,55 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
         return out_put_arr_ay, areas_cl
     else:
         return out_put_arr_ay
+
+
+
+def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=1):
+    """
+    Given a binary mask_1 and second binary mask_2, the function:
+    1) iterates through individual regions of mask_1.
+    2) keeps the region if at least a number of pixels higher than pixels_highpass_threshold (default 1) overlaps with pixels in mask_2
+    
+    For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest
+
+    The output is a binary mask of values 0, 255 and dtype uint8.
+
+    """
+    #Copy mask_1 and mask_2
+    mask_1_copy = mask_1.copy()
+    mask_2_copy = mask_2.copy()
+
+    #Label regions in mask_1
+    label_mask_1 = label(mask_1_copy)
+    
+    #measure the properties of the regions in mask_1
+    regionprops_mask_1 = regionprops(label_mask_1)
+
+    #Get coordinates of mask_2 positive pixels - reorganize them to be a list of tuples
+    coord_mask_2 = np.argwhere(mask_2_copy>0)
+    coord_mask_2_as_list_of_tuples = [(cr_dnt[0], cr_dnt[1]) for cr_dnt in list(coord_mask_2)]
+
+    #Initialize a zero array to be modified as output array
+    output_array_filtered_img = np.zeros((mask_1_copy.shape[0], mask_1_copy.shape[1])).astype(np.uint8)
+
+    #Iterate through the regions of mask_1, identified using regionprops
+    for m1_reg_i_on in regionprops_mask_1:
+    
+        #Get region coordinates - reorganize them to be a list of tuples
+        m1_reg_i_on_coordinates = m1_reg_i_on.coords
+        m1_reg_i_on_coordinates_as_listoftupl = [(cr_dnt1[0], cr_dnt1[1]) for cr_dnt1 in list(m1_reg_i_on_coordinates)]
+    
+        #Get intersection of region coordinates and mask_2 positive-pixels coordinates
+        m1_reg_i_on_interescion_with_m2 = list(set(m1_reg_i_on_coordinates_as_listoftupl).intersection(set(coord_mask_2_as_list_of_tuples)))
+
+        #If there is an intersection, add the region to the output array
+        if len(m1_reg_i_on_interescion_with_m2)>0:
+            #Unzip the coordinates in individual lists
+            unzipped_m1_reg_i_on_coordinates = [list(tt33) for tt33 in zip(*m1_reg_i_on_coordinates)]
+        
+            #Set output array values at region coordinates to 255
+            output_array_filtered_img[unzipped_m1_reg_i_on_coordinates[0], unzipped_m1_reg_i_on_coordinates[1]] = 255
+
+    return output_array_filtered_img
+
+
