@@ -4,7 +4,8 @@ from skimage.filters import apply_hysteresis_threshold
 from image_filtering import frangi_filter
 
 
-def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_top_perc, hyst_filt_bot_stdfactor=None, hyst_filt_top_stdfactor=None, filter_choice_logic='strict', roi_mask=None):
+def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_top_perc, hyst_filt_bot_stdfactor=None, hyst_filt_top_stdfactor=None, filter_choice_logic='strict',
+                                      roi_mask=None, output_lowval=0, output_highval=255, output_dtype=np.uint8):
     """
     Returns a binary mask with positive pixels selected based on an hystereris-filter. I will call the low and high values inputed to the hysteresis filtering as
     low_hyst and high_hyst in this description.
@@ -35,7 +36,7 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     When a binary mask is passed to roi_mask, the process will be restricted to the roi specified in the mask (positive values are interpreted as pixels of interest). The mask
     must have the same shape of the input image.
 
-    Output: binary segmentation of putative puncta structures as numpy array of the same shape of the input image. NOTE: the output is, by default of type np.uint8 with values 0 and 255.
+    Output: binary segmentation of putative puncta structures as numpy array of the same shape of the input image. NOTE: the default output is of type np.uint8 with values 0 and 255.
     """
     #Copy input image
     input_img_copy = input_img.copy()
@@ -176,23 +177,25 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
         #Apply hysteresis-based filtering
         hysteresis_filt_img = apply_hysteresis_threshold(input_img_copy, low=low_hyst_threshold, high=high_hyst_threshold)
     
-    #Rescale hysteresis-based binary image on the uint8 value range
-    uint8_hysteresis_filt_img = np.where(hysteresis_filt_img>0, 255, 0).astype(np.uint8)
+    #Rescale hysteresis-based binary image in the chosen value range
+    rescaled_hysteresis_filt_img = np.where(hysteresis_filt_img>0, output_highval, output_lowval).astype(output_dtype)
 
     #Further remove every puncta which is detected outside the roi_mask if an roi_mask is provided
     if hasattr(roi_mask, "__len__"):
-        final_filtered_img = np.where(roi_mask>0, uint8_hysteresis_filt_img, 0).astype(np.uint8)
+        final_filtered_img = np.where(roi_mask>0, rescaled_hysteresis_filt_img, output_lowval).astype(output_dtype)
     else:
-        final_filtered_img = uint8_hysteresis_filt_img.copy()
+        final_filtered_img = rescaled_hysteresis_filt_img.copy()
     
     return final_filtered_img
 
 
-def get_highpass_based_segmentaion_img(image_to_threshold, high_pass__threshold, roi__ma_s_k=None):
+def get_highpass_based_segmentaion_img(image_to_threshold, high_pass__threshold, roi__ma_s_k=None,
+                                       output_lowval=0, output_highval=255, output_dtype=np.uint8):
     """
     Given an input image (image_to_threshold) and a intensity value threshold (high_pass__threshold), returns a binary mask of the input image where pixels with intensity value
-    higher than high_pass__threshold are set to 255 and pixels with intensity value lower than high_pass__threshold are set to 0. The output image is of dtype uint8.
-    If an roi mask is provided (roi__ma_s_k), the pixels outside the roi are set to 0. The roi mask is interpreted as positive pixels are the pixels of interest.
+    higher than high_pass__threshold are set to output_highval and pixels with intensity value lower than high_pass__threshold are set to output_lowval.
+    The default output image is of dtype uint8 and values 0 and 255.
+    If an roi mask is provided (roi__ma_s_k), the pixels outside the roi are set to output_lowval. The roi mask is interpreted as positive pixels are the pixels of interest.
     """
     #Copy the input image
     image_to_threshold_copy = image_to_threshold.copy()
@@ -208,21 +211,22 @@ def get_highpass_based_segmentaion_img(image_to_threshold, high_pass__threshold,
         roi_high__pass__thresh_img = high__pass__thresh_img.copy()
     
     #Rescale image in the unit8 range
-    uint8_roi_high__pass__thresh_img = np.where(roi_high__pass__thresh_img>0, 255, 0).astype(np.uint8)
+    rescaled_roi_high__pass__thresh_img = np.where(roi_high__pass__thresh_img>0, output_highval, output_lowval).astype(output_dtype)
 
-    return uint8_roi_high__pass__thresh_img
+    return rescaled_roi_high__pass__thresh_img
 
 
 
-def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial_max_order=10, f_inal_max_order=3, h_ist_bins=100, ro_i__mask=None):
+def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial_max_order=10, f_inal_max_order=3, h_ist_bins=100, ro_i__mask=None,
+                                      output_lowval=0, output_highval=255, output_dtype=np.uint8):
     """
     Returns a binary mask of an input image (img__2_segment) where the intesity threshold is calculated as follow:
     1) the maxima of the histogram distribution of intensity values is calculated.
     2) A position (maxim__position) is inputed indicating the position of the maxima to use as threshold within the maxima calculated in point 1. The position counting assumes
        starting from the origin of the histogram distribution x axis.
-    3) Pixels with intensity values higher than the threshold calculated in point 2 are set to 255, the others to 0.
+    3) Pixels with intensity values higher than the threshold calculated in point 2 are set to output_highval, the others to output_lowval.
 
-    The output image is of dtype uint8.
+    The default output image is of dtype uint8 and values 0 and 255.
 
     If an roi mask is provided (ro_i__mask), the analysis is restricted to this regeion and pixels outside the roi are set to 0.
     The roi mask is interpreted as positive pixels are the pixels of interest.
@@ -241,21 +245,23 @@ def get_maxima_based_segmentation_img(img__2_segment, maxima__position, i_nitial
     highpass__threshold = detect_maxima_in_hist_distribution(image_2__process, maxima__position, initial_max_order=i_nitial_max_order, final_max_order=f_inal_max_order, hist_bins=h_ist_bins)
 
     # Binarize the image using get_highpass_based_segmentaion_img
-    high__pass_thresh_img = get_highpass_based_segmentaion_img(img__2_segment_copy, highpass__threshold, roi__ma_s_k=ro_i__mask)
+    high__pass_thresh_img = get_highpass_based_segmentaion_img(img__2_segment_copy, highpass__threshold, roi__ma_s_k=ro_i__mask,
+                                                               output_lowval=output_lowval, output_highval=output_highval, output_dtype=output_dtype)
 
     return high__pass_thresh_img
 
 
 
 def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_max_order=10, i_final_max_order=3,
-                                      i_hist_bins=100, i_boarder_value=0, i_boarder_size=8, roi__mask=None, **kwargs):
+                                      i_hist_bins=100, i_boarder_value=0, i_boarder_size=8, roi__mask=None,
+                                      output_lowval=0, output_highval=255, output_dtype=np.uint8, **kwargs):
     """
     Given an input image (img_2_segment), the function:
     1) filters the image using Frangi filtering
     2) Binarizes the Frangi filtered image using get_maxima_based_segmentation_img. The position of the maxima to use as highpass threshold is inputed (maxima_position)
     3) Return the binary mask.
 
-    The output image is of dtype uint8.
+    The default output image is of dtype uint8 and has values 0 and 255.
 
     If an roi mask is provided (roi__mask). The Frangi filtering and initial thresholding using get_maxima_based_segmentation_img are performed on the full image.
     However after obtaining the thresholded mask, pixels outside the roi are set to 0. The roi mask is interpreted as positive pixels are the pixels of interest.
@@ -286,9 +292,9 @@ def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_
     #In principle if a roi is passed to the get_maxima based function, boarders could aready be 0, but this is, of course, not guaranteed
     no_boarders_roi_segmented_frangi_filtered_img = set_boarder_to_value(roi_segmented_frangi_filtered_img, boarder_value=i_boarder_value, boarder_size=i_boarder_size)
 
-    #Rescale image in the unit8 range
-    uint8_no_boarders_roi_segmented_frangi_filtered_img = np.where(no_boarders_roi_segmented_frangi_filtered_img>0, 255, 0).astype(np.uint8)
+    #Rescale image in the desired output range
+    rescaled_no_boarders_roi_segmented_frangi_filtered_img = np.where(no_boarders_roi_segmented_frangi_filtered_img>0, output_highval, output_lowval).astype(output_dtype)
 
-    return uint8_no_boarders_roi_segmented_frangi_filtered_img
+    return rescaled_no_boarders_roi_segmented_frangi_filtered_img
 
 
