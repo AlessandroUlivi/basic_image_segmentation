@@ -242,3 +242,19 @@ def join_masks(image_mask_1, image_mask_2):
 
     return unit8_binarized_combined_img
 
+
+def subtract_arrays(array_1_to_sub_from, array_2_to_be_subtract, threshold=0, low_binary_val=0, high_binary_val=255, output_dtype=np.uint8):
+    #Copy input arrays
+    array_1_copy = array_1_to_sub_from.copy()
+    array_2_copy = array_2_to_be_subtract.copy()
+
+    #Subtract the arrays
+    array_1_minus_array_2 = array_1_copy - array_2_copy
+
+    #Rescale in the wanted range
+    rescaled_subtraction = np.where(array_1_minus_array_2>threshold, high_binary_val, low_binary_val).astype(output_dtype)
+
+    return rescaled_subtraction
+
+
+
