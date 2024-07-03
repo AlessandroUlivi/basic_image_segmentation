@@ -64,7 +64,7 @@ def frangi_filter(immg, **kwargs):
     return frangi(immg_copy, **kwargs)
 
 
-def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_list=False, input_is_label_image=False):
+def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_list=False, input_is_label_image=False, output_highval=255, output_dtype=np.uint8):
     """
     Given a binary input array and a threshold for area (the threshold is in number of pixels), it filters the structures of the binary image and only keep those whose area is
     higher than the threshold.
@@ -73,6 +73,8 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
     If a label image is provided for input__binary__imag_e, the parameter input_is_label_image must be set to True.
 
     NOTE: the option of providing input__binary__imag_e as a label image hasn't been properly tested.
+
+    The default output is a binary mask of values 0, 255 and dtype uint8. The 0 as lowvalue can't be changed.
     """
     #Copy the input image
     input__binary__imag_e_copy = input__binary__imag_e.copy()
@@ -87,7 +89,7 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
     label__im_g_properties = regionprops(label__im_g)
 
     #Initialize a zero array to be modified as output array
-    out_put_arr_ay = np.zeros((input__binary__imag_e_copy.shape[0], input__binary__imag_e_copy.shape[1]))
+    out_put_arr_ay = np.zeros((input__binary__imag_e_copy.shape[0], input__binary__imag_e_copy.shape[1])).astype(output_dtype)
 
     #Initialize a collection list for the areas
     areas_cl = []
@@ -111,7 +113,7 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
             unzipped_re_gi_on_coordinates = [list(t) for t in zip(*re_gi_on_coordinates)]
             
             #Set output array values at region coordinates to 255
-            out_put_arr_ay[unzipped_re_gi_on_coordinates[0], unzipped_re_gi_on_coordinates[1]] = 1
+            out_put_arr_ay[unzipped_re_gi_on_coordinates[0], unzipped_re_gi_on_coordinates[1]] = output_highval
     
     #Return output array and area list if return_area_list is selected, else only return the output array
     if return_area_list:
@@ -121,7 +123,7 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
 
 
 
-def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
+def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0, output_highval=255, output_dtype=np.uint8):
     """
     Given a binary mask_1 and second binary mask_2, the function:
     1) iterates through the individual regions of mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
@@ -129,7 +131,7 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
 
     For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest
 
-    The output is a binary mask of values 0, 255 and dtype uint8.
+    The default output is a binary mask of values 0, 255 and dtype uint8. The 0 as lowvalue can't be changed.
 
     """
     #Copy mask_1 and mask_2
@@ -147,7 +149,7 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
     coord_mask_2_as_list_of_tuples = [(cr_dnt[0], cr_dnt[1]) for cr_dnt in list(coord_mask_2)]
 
     #Initialize a zero array to be modified as output array
-    output_array_filtered_img = np.zeros((mask_1_copy.shape[0], mask_1_copy.shape[1])).astype(np.uint8)
+    output_array_filtered_img = np.zeros((mask_1_copy.shape[0], mask_1_copy.shape[1])).astype(output_dtype)
 
     #Iterate through the regions of mask_1, identified using regionprops
     for m1_reg_i_on in regionprops_mask_1:
@@ -165,12 +167,12 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
             unzipped_m1_reg_i_on_coordinates = [list(tt33) for tt33 in zip(*m1_reg_i_on_coordinates)]
         
             #Set output array values at region coordinates to 255
-            output_array_filtered_img[unzipped_m1_reg_i_on_coordinates[0], unzipped_m1_reg_i_on_coordinates[1]] = 255
+            output_array_filtered_img[unzipped_m1_reg_i_on_coordinates[0], unzipped_m1_reg_i_on_coordinates[1]] = output_highval
 
     return output_array_filtered_img
 
 
-def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distance_thr, filtering_modality='highpass', n_distances=2, return_coordinates=False):
+def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distance_thr, filtering_modality='highpass', n_distances=2, return_coordinates=False, output_high_value=255, output_dtype=np.uint8):
     """
     Given a binary mask_1 and a second binary mask_2, the function:
     1) iterates through individual regions of the mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
@@ -181,7 +183,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
 
     For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest.
 
-    The output is a binary mask of values 0, 255 and dtype uint8.    
+    The default output is a binary mask of values 0, 255 and dtype uint8. The low value can't be changed from 0.   
 
     """
     #Copy mask_1_img and mask_2_img
@@ -201,7 +203,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
     mask_2_img_coord_colX_rowY_listoftuples_i = [(list(cccrd)[1], list(cccrd)[0]) for cccrd in mask_2_img_coord_rowY_colX]  #WHEN PASSED TO A PLOT WHICH EXPECTS COL_X, ROW_Y, THE RESULT IS CORRECT!!! SO THIS IS CORRECTLY NAMED!
 
     #Initialize a zero array to be modified as output array
-    output_arr_ay = np.zeros((mask_1_img_copy.shape[0], mask_1_img_copy.shape[1])).astype(np.uint8)
+    output_arr_ay = np.zeros((mask_1_img_copy.shape[0], mask_1_img_copy.shape[1])).astype(output_dtype)
 
     #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2. If return_coordinates is specified,
     #Initialize a dictionary to link the centroid coordinates of regions in mask_1 to those of its closest point in mask_2
@@ -244,7 +246,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
                 unzipped_re_gion_coordinates = [list(t) for t in zip(*re_gion_coordinates)]
                 
                 #Set output array values at region coordinates to 255
-                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = 255
+                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = output_high_value
         
 
         #If filtering_modality is lowpass, the region is kept when its centroid is closer than distance_thr
@@ -259,7 +261,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
                 unzipped_re_gion_coordinates = [list(t) for t in zip(*re_gion_coordinates)]
                 
                 #Set output array values at region coordinates to 255
-                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = 255
+                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = output_high_value
 
         #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2
         if return_coordinates:
