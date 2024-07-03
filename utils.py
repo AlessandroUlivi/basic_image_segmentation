@@ -225,10 +225,10 @@ def get_minima_after_mode_in_hist_distribution(input_ima_ge, roi__mask=None, smo
         return min_intensity_val_overmode, min_intensity_val_minbwnmaxs
 
 
-def join_masks(image_mask_1, image_mask_2):
+def join_masks(image_mask_1, image_mask_2, low_binary_val=0, high_binary_val=255, output_dtype=np.uint8):
     """
     Returns a union of 2 input binary masks. Each input mask is interpreted as: positive pixels are pixels of interest.
-    The binary output has values 0 or 255 and it is dtype uint8.
+    The default binary output has values 0 or 255 and it is dtype uint8.
     """
     #Copy input masks
     image_mask_1_copy = image_mask_1.copy()
@@ -238,7 +238,7 @@ def join_masks(image_mask_1, image_mask_2):
     summed_mask = image_mask_1_copy + image_mask_2_copy
 
     #binarize the summed masks, set the range of values as 0 or 255 and the dtype as uint8
-    unit8_binarized_combined_img = np.where(summed_mask>0, 255, 0).astype(np.uint8)
+    unit8_binarized_combined_img = np.where(summed_mask>0, high_binary_val, low_binary_val).astype(output_dtype)
 
     return unit8_binarized_combined_img
 
