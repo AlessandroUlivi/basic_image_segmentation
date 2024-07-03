@@ -75,7 +75,7 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
 
     NOTE: the option of providing input__binary__imag_e as a label image hasn't been properly tested.
 
-    The default output is a binary mask of values 0, 255 and dtype uint8. The 0 as lowvalue can't be changed.
+    The default output is a binary mask of values 0, 255 and dtype uint8.
     """
     #Copy the input image
     input__binary__imag_e_copy = input__binary__imag_e.copy()
@@ -135,7 +135,7 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0, output_lo
 
     For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest
 
-    The default output is a binary mask of values 0, 255 and dtype uint8. The 0 as lowvalue can't be changed.
+    The default output is a binary mask of values 0, 255 and dtype uint8.
 
     """
     #Copy mask_1 and mask_2
@@ -191,7 +191,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
 
     For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest.
 
-    The default output is a binary mask of values 0, 255 and dtype uint8. The low value can't be changed from 0.   
+    The default output is a binary mask of values 0, 255 and dtype uint8.   
 
     """
     #Copy mask_1_img and mask_2_img
@@ -280,7 +280,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
     
     #Rescale output array in the desired output range
     rescaled_output_arr_ay = np.where(output_arr_ay>255, output_high_value, output_low_value).astype(output_dtype)
-    
+
     #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2
     if return_coordinates:
         return rescaled_output_arr_ay, coordinates_linking_dict
