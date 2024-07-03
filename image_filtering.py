@@ -127,7 +127,7 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
 
 
 
-def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0, output_lowval=255, output_highval=255, output_dtype=np.uint8):
+def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0, output_lowval=0, output_highval=255, output_dtype=np.uint8):
     """
     Given a binary mask_1 and second binary mask_2, the function:
     1) iterates through the individual regions of mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
@@ -173,9 +173,9 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0, output_lo
             #Set output array values at region coordinates to 255
             output_array_filtered_img[unzipped_m1_reg_i_on_coordinates[0], unzipped_m1_reg_i_on_coordinates[1]] = 255
 
-    #Rescale output array in the desired range
+    # #Rescale output array in the desired range
     rescaled_output_array_filtered_img = np.where(output_array_filtered_img>0, output_highval, output_lowval).astype(output_dtype)
-
+    
     return rescaled_output_array_filtered_img
 
 
