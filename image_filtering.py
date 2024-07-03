@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.signal import convolve
+from scipy.spatial import KDTree
 from skimage.filters import median as medianfilter
 from skimage.filters import frangi
 from skimage.util import img_as_float32
@@ -120,12 +121,12 @@ def highpass_area_filter(input__binary__imag_e, area_highpass_thr, return_area_l
 
 
 
-def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=1):
+def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
     """
     Given a binary mask_1 and second binary mask_2, the function:
-    1) iterates through individual regions of mask_1.
+    1) iterates through the individual regions of mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
     2) keeps the region if at least a number of pixels higher than pixels_highpass_threshold (default 1) overlaps with pixels in mask_2
-    
+
     For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest
 
     The output is a binary mask of values 0, 255 and dtype uint8.
@@ -159,7 +160,7 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=1):
         m1_reg_i_on_interescion_with_m2 = list(set(m1_reg_i_on_coordinates_as_listoftupl).intersection(set(coord_mask_2_as_list_of_tuples)))
 
         #If there is an intersection, add the region to the output array
-        if len(m1_reg_i_on_interescion_with_m2)>0:
+        if len(m1_reg_i_on_interescion_with_m2)>pixels_highpass_threshold:
             #Unzip the coordinates in individual lists
             unzipped_m1_reg_i_on_coordinates = [list(tt33) for tt33 in zip(*m1_reg_i_on_coordinates)]
         
@@ -167,5 +168,111 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=1):
             output_array_filtered_img[unzipped_m1_reg_i_on_coordinates[0], unzipped_m1_reg_i_on_coordinates[1]] = 255
 
     return output_array_filtered_img
+
+
+def filter_mask1_by_distance_from_mask2(mask_1_img, mask_2_img, distance_thr, filtering_modality='highpass', n_distances=3, return_coordinates=False):
+    """
+    Given a binary mask_1 and a second binary mask_2, the function:
+    1) iterates through individual regions of the mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
+    2) Per each region calculates the coordinates of the centroid.
+    3) Keeps the region only if...
+        3A) if the filtering_modality is 'highpass', regions whose centroid distance from the closest pixels in mask_2 is higher than distance_thr are kept.
+        3B) if the filtering_modality is 'lowpass', regions whose centroid distance from the closest pixels in mask_2 is lower than distance_thr are kept.
+
+    For both mask_1 and mask_2 positive pixels are assumed to be the pixels of interest.
+
+    The output is a binary mask of values 0, 255 and dtype uint8.    
+
+    """
+    #Copy mask_1_img and mask_2_img
+    mask_1_img_copy = mask_1_img.copy()
+    mask_2_img_copy = mask_2_img.copy()
+
+    #label mask_1 regions
+    label_mask_1_img = label(mask_1_img_copy)
+    
+    #measure the properties of the region
+    mask_1_img_regionprops = regionprops(label_mask_1_img)
+
+    #Get the coordinates of mask_2 regions
+    mask_2_img_coord_rowY_colX = np.argwhere(mask_2_img_copy>0) #THIS IS CORRECTLY NAMED ROW_Y, COL_X
+        
+    #Transform coordinates so that they are tuples in a list
+    mask_2_img_coord_colX_rowY_listoftuples_i = [(list(cccrd)[1], list(cccrd)[0]) for cccrd in mask_2_img_coord_rowY_colX]  #WHEN PASSED TO A PLOT WHICH EXPECTS COL_X, ROW_Y, THE RESULT IS CORRECT!!! SO THIS IS CORRECTLY NAMED!
+
+    #Initialize a zero array to be modified as output array
+    output_arr_ay = np.zeros((mask_1_img_copy.shape[0], mask_1_img_copy.shape[1])).astype(np.uint8)
+
+    #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2. If return_coordinates is specified,
+    #Initialize a dictionary to link the centroid coordinates of regions in mask_1 to those of its closest point in mask_2
+    if return_coordinates:
+        coordinates_linking_dict = {}
+    
+    # #Initialize a centroids coord collection list
+    # centroid_coord_coll_list = []
+
+    #Iterate through the regions of the labelled image, identified using measure.regionprops
+    for re_gion in mask_1_img_regionprops:
+        
+        #Re-initialize the coordinates of mask2
+        mask_2_img_coord_colX_rowY_listoftuples = mask_2_img_coord_colX_rowY_listoftuples_i
+
+        #Get the coordinates of the centroid of the region
+        cc_yy_row, cc_xx_col = re_gion.centroid #WHEN PASSED TO A PLOT WHICH EXPECTS COL_X, ROW_Y, THE RESULT IS INVERTED!!! SO THIS IS CORRECTLY NAMED
+
+        #Invert centroid region coordinates to match the list of coordinate for mask_2
+        input_re_gion_centroid = (cc_xx_col, cc_yy_row) #WHEN PASSED TO A PLOT WHICH EXPECTS COL_X, ROW_Y, THE RESULT IS CORRECT!!! SO THIS IS CORRECTLY NAMED
+
+        #Add centroid coordinates to the list of coordinates of mask_2
+        mask_2_img_coord_colX_rowY_listoftuples_plusCC = mask_2_img_coord_colX_rowY_listoftuples + [input_re_gion_centroid]
+        
+        # Make a tree out of the outside embryo coordinates plus the centroid coordinates
+        mask_2_coord_tree = KDTree(mask_2_img_coord_colX_rowY_listoftuples_plusCC)
+        
+        #Get the n closest distances (and relative indeces in the list of coordinates) to the region centroid. NOTE: the first (aka closest) distance is always the point itself with distance 0
+        distance__m1_m2, result__m1_m2 = mask_2_coord_tree.query(input_re_gion_centroid, k=n_distances)
+        
+        #If filtering_modality is highpass, the region is kept when its centroid is further apart than distance_thr
+        if filtering_modality=='highpass':
+            #If the nearest neightbor distance of the region is higher than the highpass threshold, modify the output array
+            if list(distance__m1_m2)[1]>distance_thr:
+                
+                #Get region coordinates
+                re_gion_coordinates = re_gion.coords
+        
+                #Unzip the coordinates in individual lists
+                unzipped_re_gion_coordinates = [list(t) for t in zip(*re_gion_coordinates)]
+                
+                #Set output array values at region coordinates to 255
+                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = 255
+        
+
+        #If filtering_modality is lowpass, the region is kept when its centroid is closer than distance_thr
+        elif filtering_modality=='lowpass':
+            #If the nearest neightbor distance of the region is lower than the lowpass threshold, modify the output array
+            if list(distance__m1_m2)[1]<distance_thr:
+                
+                #Get region coordinates
+                re_gion_coordinates = re_gion.coords
+        
+                #Unzip the coordinates in individual lists
+                unzipped_re_gion_coordinates = [list(t) for t in zip(*re_gion_coordinates)]
+                
+                #Set output array values at region coordinates to 255
+                output_arr_ay[unzipped_re_gion_coordinates[0], unzipped_re_gion_coordinates[1]] = 255
+
+        #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2
+        if return_coordinates:
+            #Get the coordinates of closest point to the centroid in mask_2
+            cpm2__coord = mask_2_img_coord_colX_rowY_listoftuples_plusCC[list(result__m1_m2)[1]]
+            #Link the centroid coordinates and the closest point coordinates in the output dictionary
+            coordinates_linking_dict[input_re_gion_centroid]=cpm2__coord #THESE SHOULD BE MATCHING AND BOTH BE IN THE FORMAT COL_X, ROW_Y
+    
+    #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2
+    if return_coordinates:
+        return output_arr_ay, coordinates_linking_dict
+        
+    else:
+        return output_arr_ay
 
 
