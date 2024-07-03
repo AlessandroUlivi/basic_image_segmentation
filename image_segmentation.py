@@ -5,7 +5,7 @@ from image_filtering import frangi_filter
 
 
 def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_top_perc, hyst_filt_bot_stdfactor=None, hyst_filt_top_stdfactor=None, filter_choice_logic='strict',
-                                      roi_mask=None, output_lowval=0, output_highval=255, output_dtype=np.uint8):
+                                      roi_mask=None, img_4_histogram=None, output_lowval=0, output_highval=255, output_dtype=np.uint8):
     """
     Returns a binary mask with positive pixels selected based on an hystereris-filter. I will call the low and high values inputed to the hysteresis filtering as
     low_hyst and high_hyst in this description.
@@ -36,17 +36,31 @@ def get_hysteresis_based_segmentation(input_img, hyst_filt_bot_perc, hyst_filt_t
     When a binary mask is passed to roi_mask, the process will be restricted to the roi specified in the mask (positive values are interpreted as pixels of interest). The mask
     must have the same shape of the input image.
 
+    When an image is passed to img_4_histogram, this image, instead of input_img will be used to calculate the histogram as well as the low_hyst and high_hyst values. This allows, for
+    example to use a smoothed image for the histogram and low_hyst and high_hyst values calculation, while still applying the segmentation to the raw image.
+
     Output: binary segmentation of putative puncta structures as numpy array of the same shape of the input image. NOTE: the default output is of type np.uint8 with values 0 and 255.
     """
     #Copy input image
     input_img_copy = input_img.copy()
+
+    #If img_4_histogram is provided, copy it
+    if hasattr(img_4_histogram, "__len__"):
+        img_4_histogram_copy = img_4_histogram.copy()
     
-    #If roi_mask is provided, get the array of pixels in the input image which are in the roi_mask. Else use the entire image
+    #Select pixels of roi_mask, if it is provided. Use img_4_histogram instead of input_img if it is provided
     if hasattr(roi_mask, "__len__"):
-        image_2_process = input_img_copy[roi_mask>0]
+
+        if hasattr(img_4_histogram, "__len__"):
+            image_2_process = img_4_histogram_copy[roi_mask>0]
+        else:
+            image_2_process = input_img_copy[roi_mask>0]
     else:
         full_image_zeroes_array = np.ones(input_img_copy.shape) #Note: I should check if it is necessary to pass a zero array instead of just working with the input image
-        image_2_process = input_img_copy[full_image_zeroes_array>0]
+        if hasattr(img_4_histogram, "__len__"):
+            image_2_process = img_4_histogram_copy[full_image_zeroes_array>0]
+        else:
+            image_2_process = input_img_copy[full_image_zeroes_array>0]
     
     #If no values are provided to calculate hysteresis-based filtering by summing the standard deviantion of histogram intensity to the mode of the distribution
     if hyst_filt_bot_stdfactor == None and hyst_filt_top_stdfactor == None:
