@@ -244,6 +244,12 @@ def join_masks(image_mask_1, image_mask_2):
 
 
 def subtract_arrays(array_1_to_sub_from, array_2_to_be_subtract, threshold=0, low_binary_val=0, high_binary_val=255, output_dtype=np.uint8):
+    """
+    Returns the subtraction of array_2_to_be_subtract from array_1_to_sub_from. The output of the subtraction is then binarized. By default the binarizations sets
+    values higher than 0 to 255 and values equal or lower than 0 to 0.
+    The default binary output has values 0 or 255 and it is dtype uint8.
+    """
+
     #Copy input arrays
     array_1_copy = array_1_to_sub_from.copy()
     array_2_copy = array_2_to_be_subtract.copy()
