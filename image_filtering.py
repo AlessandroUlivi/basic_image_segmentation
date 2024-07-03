@@ -170,7 +170,7 @@ def filter_mask1_on_mask2(mask_1, mask_2, pixels_highpass_threshold=0):
     return output_array_filtered_img
 
 
-def filter_mask1_by_distance_from_mask2(mask_1_img, mask_2_img, distance_thr, filtering_modality='highpass', n_distances=3, return_coordinates=False):
+def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distance_thr, filtering_modality='highpass', n_distances=3, return_coordinates=False):
     """
     Given a binary mask_1 and a second binary mask_2, the function:
     1) iterates through individual regions of the mask_1 (individual regions are areas of pixels which are entirely surrounded by background).
