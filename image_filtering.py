@@ -244,6 +244,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
         
         #If filtering_modality is highpass, the region is kept when its centroid is further apart than distance_thr
         if filtering_modality=='highpass':
+            
             #If the nearest neightbor distance of the region is higher than the highpass threshold, modify the output array
             if list(distance__m1_m2)[1]>distance_thr:
                 
@@ -279,7 +280,7 @@ def filter_mask1_by_centroid_distance_from_mask2(mask_1_img, mask_2_img, distanc
             coordinates_linking_dict[input_re_gion_centroid]=cpm2__coord #THESE SHOULD BE MATCHING AND BOTH BE IN THE FORMAT COL_X, ROW_Y
     
     #Rescale output array in the desired output range
-    rescaled_output_arr_ay = np.where(output_arr_ay>255, output_high_value, output_low_value).astype(output_dtype)
+    rescaled_output_arr_ay = np.where(output_arr_ay>0, output_high_value, output_low_value).astype(output_dtype)
 
     #For visualization purposes it could be convenient to return the centroid linked to the closest point in mask_2
     if return_coordinates:
