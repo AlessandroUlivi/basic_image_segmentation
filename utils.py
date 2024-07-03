@@ -263,4 +263,6 @@ def subtract_arrays(array_1_to_sub_from, array_2_to_be_subtract, threshold=0, lo
     return rescaled_subtraction
 
 
+def form_mask_from_roi(roi_file):
+    pass
 
