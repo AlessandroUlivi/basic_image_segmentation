@@ -316,7 +316,10 @@ def hysteresis_segmentation_over_axis(input_ima_ge, hyst_filt_low_percentile, hy
                                       hyst_filt_low_stdfactor=None, hyst_filt_high_stdfactor=None, filtering_logic='strict',
                                       roi_mas_k=None, img__4__histogram=None, output_low_val=0, output_high_val=255, output_d_type=np.uint8, iteration_axis=0):
     """
-    the function only supports 3D arrays
+    Given a 3D array as input_ima_ge, the function iterates get_hysteresis_based_segmentation on one of the axes (parameter iteration_axis, default axis 0).
+    roi_mas_k and img__4__histogram are respectively passed to roi_mask and img_4_histogram. In both cases, either a 3D array of same shape of input_ima_ge or
+    a 2D array can be passed. If a 2D array is passed, it will be used for all the 2D arrays of input_ima_ge along the iteration_axis. If a 2D array is passed, 
+    the shape must match the shape of the 2D arrays obtained from input_ima_ge along the iteration_axis.
     """
 
     #Make sure that input image is the correct dimension
