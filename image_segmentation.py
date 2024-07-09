@@ -312,3 +312,115 @@ def get_frangi_based_segmentation_img(img_2_segment, maxima_position, i_initial_
     return rescaled_no_boarders_roi_segmented_frangi_filtered_img
 
 
+def hysteresis_segmentation_over_axis(input_ima_ge, hyst_filt_low_percentile, hyst_filt_high_percentile,
+                                      hyst_filt_low_stdfactor=None, hyst_filt_high_stdfactor=None, filtering_logic='strict',
+                                      roi_mas_k=None, img__4__histogram=None, output_low_val=0, output_high_val=255, output_d_type=np.uint8, iteration_axis=0):
+    """
+    the function only supports 3D arrays
+    """
+
+    #Make sure that input image is the correct dimension
+    assert len(input_ima_ge.shape)==3, "the function currently only supports 3D arrays"
+
+    #Copy input image
+    input_ima_ge_copy = input_ima_ge.copy()
+
+    #Form a list of 2D images based on the axis to use for iteration.
+    if iteration_axis==0:
+        input_ima_ge_list = [input_ima_ge_copy[tp,...] for tp in range(input_ima_ge_copy.shape[0])]
+    elif iteration_axis==1:
+        input_ima_ge_list = [input_ima_ge_copy[:,tp1,:] for tp1 in range(input_ima_ge_copy.shape[1])]
+    elif iteration_axis==2:
+        input_ima_ge_list = [input_ima_ge_copy[...,tp2] for tp2 in range(input_ima_ge_copy.shape[2])]
+
+    #If roi mask is provided
+    if hasattr(roi_mas_k, "__len__"):
+
+        #make sure it is the correct dimension
+        if not (len(roi_mas_k.shape)>1 and len(roi_mas_k.shape)<4):
+            print("roi_mas_k mus't be a 2D or 3D image")
+            return
+        
+        #Copy it
+        roi_mas_k_copy = roi_mas_k.copy()
+        
+        #Form a list of 2D images based on the axis to use for iteration.
+        #NOTE: if it is a 2D array. Iterate the array along iteration_axis to match the lengh of iteration_axis in input_ima_ge
+        if len(roi_mas_k.shape)==2:
+            roi_mas_k_list = [roi_mas_k_copy for i in range(len(input_ima_ge_list))]
+        else:
+            if iteration_axis==0:
+                roi_mas_k_list = [roi_mas_k_copy[tp3,...] for tp3 in range(roi_mas_k_copy.shape[0])]
+            elif iteration_axis==1:
+                roi_mas_k_list = [roi_mas_k_copy[:,tp4,:] for tp4 in range(roi_mas_k_copy.shape[1])]
+            elif iteration_axis==2:
+                roi_mas_k_list = [roi_mas_k_copy[...,tp5] for tp5 in range(roi_mas_k_copy.shape[2])]
+    
+    #If img__4__histogram is provided
+    if hasattr(img__4__histogram, "__len__"):
+        
+        #make sure it is the correct dimension
+        if not (len(img__4__histogram.shape)>1 and len(img__4__histogram.shape)<4):
+            print("img__4__histogram mus't be a 2D or 3D image")
+            return
+
+        #Copy it
+        img__4__histogram_copy = img__4__histogram.copy()
+
+        #Form a list of 2D images based on the axis to use for iteration.
+        #NOTE: if it is a 2D array. Iterate the array along iteration_axis to match the lengh of iteration_axis in input_ima_ge
+        if len(img__4__histogram.shape)==2:
+            img__4__histogram_list = [img__4__histogram_copy for i in range(len(input_ima_ge_list))]
+        else:
+            if iteration_axis==0:
+                img__4__histogram_list = [img__4__histogram_copy[tp6,...] for tp6 in range(img__4__histogram_copy.shape[0])]
+            elif iteration_axis==1:
+                img__4__histogram_list = [img__4__histogram_copy[:,tp7,:] for tp7 in range(img__4__histogram_copy.shape[1])]
+            elif iteration_axis==2:
+                img__4__histogram_list = [img__4__histogram_copy[...,tp8] for tp8 in range(img__4__histogram_copy.shape[2])]
+
+    #Initialize an output array
+    output_3D_array = np.zeros(input_ima_ge_copy.shape)
+
+    #Iterate through the 2D arrays of the input image along the iteration axis
+    for pos_counter, arr_2D in enumerate(input_ima_ge_list):
+
+        #Get the 2D array for roi mask if it is provided, otherwise set the variable to None
+        if hasattr(roi_mas_k, "__len__"):
+            arr_2D_roi = roi_mas_k_list[pos_counter]
+        else:
+            arr_2D_roi = None
+        
+        #Get the 2D array for img__4__histogram if it is provided, otherwise set the variable to None
+        if hasattr(roi_mas_k, "__len__"):
+            arr_2D_img4hist = img__4__histogram_list[pos_counter]
+        else:
+            arr_2D_img4hist = None
+
+
+        #Obtain the hysteresis based segmentation of the 2D array
+        hyst_based_segmented_img = get_hysteresis_based_segmentation(arr_2D,
+                                                                     hyst_filt_bot_perc=hyst_filt_low_percentile,
+                                                                     hyst_filt_top_perc=hyst_filt_high_percentile,
+                                                                     hyst_filt_bot_stdfactor=hyst_filt_low_stdfactor,
+                                                                     hyst_filt_top_stdfactor=hyst_filt_high_stdfactor,
+                                                                     filter_choice_logic=filtering_logic,
+                                                                     roi_mask=roi_mas_k,
+                                                                     img_4_histogram=img__4__histogram,
+                                                                     output_lowval=0,
+                                                                     output_highval=255,
+                                                                     output_dtype=np.uint8)
+        
+        #Modify the output array according to the iteration axis
+        if iteration_axis==0:
+            output_3D_array[pos_counter,...] += hyst_based_segmented_img
+        elif iteration_axis==1:
+            output_3D_array[:,pos_counter,:] += hyst_based_segmented_img
+        elif iteration_axis==2:
+            output_3D_array[...,pos_counter] += hyst_based_segmented_img
+
+    #Rescale the output array in the desired value range and dtype
+    rescaled_output_3D_array = np.where(output_3D_array>0, output_high_val, output_high_val).astype(output_d_type)
+
+    return rescaled_output_3D_array
+
