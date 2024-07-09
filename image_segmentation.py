@@ -405,8 +405,8 @@ def hysteresis_segmentation_over_axis(input_ima_ge, hyst_filt_low_percentile, hy
                                                                      hyst_filt_bot_stdfactor=hyst_filt_low_stdfactor,
                                                                      hyst_filt_top_stdfactor=hyst_filt_high_stdfactor,
                                                                      filter_choice_logic=filtering_logic,
-                                                                     roi_mask=roi_mas_k,
-                                                                     img_4_histogram=img__4__histogram,
+                                                                     roi_mask=arr_2D_roi,
+                                                                     img_4_histogram=arr_2D_img4hist,
                                                                      output_lowval=0,
                                                                      output_highval=255,
                                                                      output_dtype=np.uint8)
@@ -420,7 +420,7 @@ def hysteresis_segmentation_over_axis(input_ima_ge, hyst_filt_low_percentile, hy
             output_3D_array[...,pos_counter] += hyst_based_segmented_img
 
     #Rescale the output array in the desired value range and dtype
-    rescaled_output_3D_array = np.where(output_3D_array>0, output_high_val, output_high_val).astype(output_d_type)
+    rescaled_output_3D_array = np.where(output_3D_array>0, output_high_val, output_low_val).astype(output_d_type)
 
     return rescaled_output_3D_array
 
