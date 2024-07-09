@@ -395,7 +395,7 @@ def hysteresis_segmentation_over_axis(input_ima_ge, hyst_filt_low_percentile, hy
             arr_2D_roi = None
         
         #Get the 2D array for img__4__histogram if it is provided, otherwise set the variable to None
-        if hasattr(roi_mas_k, "__len__"):
+        if hasattr(img__4__histogram, "__len__"):
             arr_2D_img4hist = img__4__histogram_list[pos_counter]
         else:
             arr_2D_img4hist = None
